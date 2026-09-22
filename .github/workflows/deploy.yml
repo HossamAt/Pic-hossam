@@ -1,9 +1,6 @@
 name: Deploy Hossam State Image Server
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -11,6 +8,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Render
+      - name: Check Render Deploy Hook
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "ERROR: RENDER_DEPLOY_HOOK is not configured."
+            exit 1
+          fi
+
+      - name: Deploy to Render
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          echo "Starting Render deployment..."
+          curl --fail --silent --show-error \
+            -X POST "$RENDER_DEPLOY_HOOK"
+
+          echo "Render deployment triggered successfully."
